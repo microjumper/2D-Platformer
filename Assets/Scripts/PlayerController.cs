@@ -1,8 +1,15 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField]
+    private TextMeshProUGUI scoreText;
+    [SerializeField]
+    private GameObject winPanel;
+
     [SerializeField]
     private float speed = 5f;
     [SerializeField]
@@ -30,6 +37,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        winPanel.SetActive(false);
         rigidbody = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         animator = GetComponent<Animator>();
@@ -65,6 +73,27 @@ public class PlayerController : MonoBehaviour
         animator.SetFloat("VerticalVelocity", rigidbody.linearVelocityY);
     }
 
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Collectable"))
+        {
+            Destroy(collision.gameObject);
+            Debug.Log("Collected!");
+            scoreText.text = (int.Parse(scoreText.text) + 1).ToString();
+        }
+
+        if (collision.CompareTag("Door"))
+        {
+            Debug.Log("Level complete!");
+            winPanel.SetActive(true);
+        }
+
+        if (collision.CompareTag("Water"))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+    }
+
     private void UpdateJumpBuffer()
     {
         // This ensures that if the player presses jump before landing, it will still register.
@@ -94,6 +123,13 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext context)
     {
+        if (winPanel.activeSelf)
+        {
+            direction = Vector2.zero;
+            animator.SetBool("Running", false);
+            return;
+        }
+
         switch (context.phase)
         {
             case InputActionPhase.Performed:
@@ -111,6 +147,11 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
+        if (winPanel.activeSelf)
+        {
+            return;
+        }
+
         if (context.performed)
         {
             // When the jump button is pressed, we buffer the input for a short time.
