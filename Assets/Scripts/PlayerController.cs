@@ -23,12 +23,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private float rayLength = 0.1f;
 
+    [SerializeField]
+    private AudioClip jumpSound;
+    [SerializeField]
+    private AudioClip collectSound;
+
     private const float jumpBufferTime = 0.2f; // Time window to buffer jump input
 
     // References
     private new Rigidbody2D rigidbody;
     private BoxCollider2D boxCollider;
     private Animator animator;
+    private AudioSource audioSource;
 
     // Fields
     private Vector2 direction;
@@ -41,6 +47,7 @@ public class PlayerController : MonoBehaviour
         rigidbody = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         animator = GetComponent<Animator>();
+        audioSource = GetComponentInChildren<AudioSource>();
     }
 
     private void Start()
@@ -65,6 +72,7 @@ public class PlayerController : MonoBehaviour
         // the jump is executed even if the button was pressed slightly before landing.
         if (isGrounded && jumpBufferCounter > 0)
         {
+            audioSource.PlayOneShot(jumpSound);
             Jump();
         }
 
@@ -77,6 +85,7 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.CompareTag("Collectable"))
         {
+            audioSource.PlayOneShot(collectSound);
             Destroy(collision.gameObject);
             Debug.Log("Collected!");
             scoreText.text = (int.Parse(scoreText.text) + 1).ToString();
